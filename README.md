@@ -2,9 +2,9 @@ Requirements:
   `go get github.com/marcusolsson/tui-go`
 
 
-1. Navigate to pkg/server/cmd and start the server with `go run main.go`
+1. Navigate to `pkg/server/cmd` and start the server with `go run main.go`
 
-2. Navigate to cmd/ and start the client with `go run main.go`
+2. Navigate to `cmd/` and start the client with `go run main.go`
 
 Repeat step 2 to add another client. Exit client with `ctrl+c` or `ESC` 
 
