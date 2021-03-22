@@ -1,4 +1,5 @@
-go get github.com/marcusolsson/tui-go
+Requirements:
+  `go get github.com/marcusolsson/tui-go`
 
 
 1. Navigate to pkg/server/cmd and start the server with `go run main.go`
