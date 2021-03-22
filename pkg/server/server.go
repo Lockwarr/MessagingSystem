@@ -7,13 +7,13 @@ import (
 	"net"
 	"sync"
 
-	"github.com/Lockwarr/MessagingSystem/pkg/protocol"
+	protocol "../protocol"
 )
 
 type client struct {
-	conn   net.Conn
-	name   string
-	writer *protocol.CommandWriter
+	conn      net.Conn
+	publicKey string
+	writer    *protocol.CommandWriter
 }
 
 // TCPChatServer - struct for the tcp server
@@ -54,7 +54,7 @@ func (s *TCPChatServer) Close() {
 }
 
 // Start - starts the server and accept connections
-func (s *TcpChatServer) Start() {
+func (s *TCPChatServer) Start() {
 	for {
 		// XXX: need a way to break the loop
 		conn, err := s.listener.Accept()
@@ -70,7 +70,7 @@ func (s *TcpChatServer) Start() {
 }
 
 // Broadcast - broadcasts to other server clients
-func (s *TcpChatServer) Broadcast(command interface{}) error {
+func (s *TCPChatServer) Broadcast(command interface{}) error {
 	for _, client := range s.clients {
 		// TODO: handle error here?
 		client.writer.Write(command)
@@ -80,9 +80,9 @@ func (s *TcpChatServer) Broadcast(command interface{}) error {
 }
 
 // Send - sends message to other clients
-func (s *TcpChatServer) Send(name string, command interface{}) error {
+func (s *TCPChatServer) Send(publicKey string, command interface{}) error {
 	for _, client := range s.clients {
-		if client.name == name {
+		if client.publicKey == publicKey {
 			return client.writer.Write(command)
 		}
 	}
@@ -90,7 +90,7 @@ func (s *TcpChatServer) Send(name string, command interface{}) error {
 	return UnknownClient
 }
 
-func (s *TcpChatServer) accept(conn net.Conn) *client {
+func (s *TCPChatServer) accept(conn net.Conn) *client {
 	log.Printf("Accepting connection from %v, total clients: %v", conn.RemoteAddr().String(), len(s.clients)+1)
 
 	s.mutex.Lock()
@@ -106,7 +106,7 @@ func (s *TcpChatServer) accept(conn net.Conn) *client {
 	return client
 }
 
-func (s *TcpChatServer) remove(client *client) {
+func (s *TCPChatServer) remove(client *client) {
 	s.mutex.Lock()
 	defer s.mutex.Unlock()
 
@@ -121,7 +121,7 @@ func (s *TcpChatServer) remove(client *client) {
 	client.conn.Close()
 }
 
-func (s *TcpChatServer) serve(client *client) {
+func (s *TCPChatServer) serve(client *client) {
 	cmdReader := protocol.NewCommandReader(client.conn)
 
 	defer s.remove(client)
@@ -137,12 +137,9 @@ func (s *TcpChatServer) serve(client *client) {
 			switch v := cmd.(type) {
 			case protocol.SendCommand:
 				go s.Broadcast(protocol.MessageCommand{
-					Message: v.Message,
-					Name:    client.name,
+					Message:   v.Message,
+					PublicKey: client.publicKey,
 				})
-
-			case protocol.NameCommand:
-				client.name = v.Name
 			}
 		}
 

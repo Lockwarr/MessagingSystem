@@ -18,6 +18,6 @@ type NameCommand struct {
 
 // MessageCommand is used for notifying new messages
 type MessageCommand struct {
-	Name    string
-	Message string
+	PublicKey string
+	Message   string
 }

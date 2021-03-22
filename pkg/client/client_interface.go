@@ -1,9 +1,10 @@
 package client
 
-import "github.com/Lockwarr/MessagingSystem/pkg/protocol"
+import "../protocol"
 
 type messageHandler func(string)
 
+// ChatClient - chat client's interface
 type ChatClient interface {
 	Dial(address string) error
 	Start()

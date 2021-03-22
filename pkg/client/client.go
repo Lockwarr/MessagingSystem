@@ -5,24 +5,29 @@ import (
 	"log"
 	"net"
 
-	"github.com/Lockwarr/MessagingSystem/pkg/protocol"
+	helpers "../helpers"
+	protocol "../protocol"
 )
 
-type TcpChatClient struct {
+// TCPChatClient - struct for the chat clientee
+type TCPChatClient struct {
 	conn      net.Conn
 	cmdReader *protocol.CommandReader
 	cmdWriter *protocol.CommandWriter
-	name      string
+	publicKey string
 	incoming  chan protocol.MessageCommand
 }
 
-func NewClient() *TcpChatClient {
-	return &TcpChatClient{
-		incoming: make(chan protocol.MessageCommand),
+// NewClient - creating new client and generating public/private key
+func NewClient() *TCPChatClient {
+	return &TCPChatClient{
+		incoming:  make(chan protocol.MessageCommand),
+		publicKey: helpers.GeneratePublicKey(),
 	}
 }
 
-func (c *TcpChatClient) Dial(address string) error {
+// Dial - Dials to given address
+func (c *TCPChatClient) Dial(address string) error {
 	conn, err := net.Dial("tcp", address)
 
 	if err == nil {
@@ -35,7 +40,8 @@ func (c *TcpChatClient) Dial(address string) error {
 	return err
 }
 
-func (c *TcpChatClient) Start() {
+// Start - reads incoming messages from the server or other clients
+func (c *TCPChatClient) Start() {
 	for {
 		cmd, err := c.cmdReader.Read()
 
@@ -56,23 +62,30 @@ func (c *TcpChatClient) Start() {
 	}
 }
 
-func (c *TcpChatClient) Close() {
+// Close - closes the connection of the client
+func (c *TCPChatClient) Close() {
 	c.conn.Close()
 }
 
-func (c *TcpChatClient) Incoming() chan protocol.MessageCommand {
+// SetName - sets the name of the user
+func (c *TCPChatClient) SetName(name string) error {
+	return c.Send(protocol.NameCommand{
+		Name: name,
+	})
+}
+
+// Incoming - returns incoming messages
+func (c *TCPChatClient) Incoming() chan protocol.MessageCommand {
 	return c.incoming
 }
 
-func (c *TcpChatClient) Send(command interface{}) error {
+// Send - sends command
+func (c *TCPChatClient) Send(command interface{}) error {
 	return c.cmdWriter.Write(command)
 }
 
-func (c *TcpChatClient) SetName(name string) error {
-	return c.Send(protocol.NameCommand{name})
-}
-
-func (c *TcpChatClient) SendMessage(message string) error {
+// SendMessage - sends a message command
+func (c *TCPChatClient) SendMessage(message string) error {
 	return c.Send(protocol.SendCommand{
 		Message: message,
 	})

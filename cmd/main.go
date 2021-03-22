@@ -1,14 +1,29 @@
 package main
 
 import (
-	"github.com/Lockwarr/MessagingSystem/pkg/server_interface"
+	"flag"
+	"log"
+
+	"../pkg/UI"
+	"../pkg/client"
 )
 
 func main() {
-	var s server.ChatServer
-	s = server.NewServer()
-	s.Listen(":3333")
+	address := flag.String("server", "0.0.0.0:3333", "Which server to connect to")
 
-	// start the server
-	s.Start()
+	flag.Parse()
+
+	client := client.NewClient()
+	err := client.Dial(*address)
+
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	defer client.Close()
+
+	// start the client to listen for incoming message
+	go client.Start()
+
+	UI.StartUi(client)
 }

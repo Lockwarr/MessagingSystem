@@ -10,12 +10,14 @@ type CommandReader struct {
 	reader *bufio.Reader
 }
 
+// NewCommandReader - creates commands reader object
 func NewCommandReader(reader io.Reader) *CommandReader {
 	return &CommandReader{
 		reader: bufio.NewReader(reader),
 	}
 }
 
+// Read - reads the command
 func (r *CommandReader) Read() (interface{}, error) {
 	// Read the first part
 	commandName, err := r.reader.ReadString(' ')
@@ -51,7 +53,6 @@ func (r *CommandReader) Read() (interface{}, error) {
 		}
 
 		return SendCommand{message[:len(message)-1]}, nil
-
 	case "NAME ":
 		name, err := r.reader.ReadString('\n')
 
@@ -60,7 +61,6 @@ func (r *CommandReader) Read() (interface{}, error) {
 		}
 
 		return NameCommand{name[:len(name)-1]}, nil
-
 	default:
 		log.Printf("Unknown command: %v", commandName)
 	}
@@ -68,6 +68,7 @@ func (r *CommandReader) Read() (interface{}, error) {
 	return nil, UnknownCommand
 }
 
+// ReadAll - reads all commands
 func (r *CommandReader) ReadAll() ([]interface{}, error) {
 	commands := []interface{}{}
 
